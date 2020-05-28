@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <TFile.h>
+#include <array>
 #include <TTree.h>
 #include <memory>
 #include <iostream>
@@ -48,7 +49,7 @@
 //
 // class declaration
 //
-
+using namespace std;
 
 // Auxiliary class
 class towerEner {   
@@ -61,6 +62,7 @@ class towerEner {
   float eRec_ ;
   int sFGVB_;
   int iphi_, ieta_, nbXtal_ ;
+  vector<array<int, 10>> digis_;
 
   towerEner()
     : rawTPData_(0), compressedEt_(0),eRec_(0), sFGVB_(0),  
@@ -100,17 +102,18 @@ class TPSimpleAnalysis : public edm::one::EDAnalyzer<edm::one::SharedResources> 
          unsigned int bxNb ;
          unsigned int orbitNb ;
          unsigned int nbOfActiveTriggers ;
-         int activeTriggers[128] ;
 
          // tower variables
          unsigned int nbOfTowers ; //max 4032 EB+EE
-         int ieta[4032] ;
-         int iphi[4032] ;
-         int nbOfXtals[4032] ;
-         int rawTPData[4032] ;
-         int compressedTPEt[4032];
-         float eRec[4032] ;
-         int sFGVB[4032] ;
+         vector<int> ieta;
+         vector<int> iphi ;
+         vector<int> nbOfXtals;
+         vector<int> rawTPData ;
+         vector<int> compressedTPEt;
+         vector<float> eRec;
+         vector<int> sFGVB;
+         vector<vector<array<int, 10>>> xtalsDigis;
+
       } ;
       
       TFile * file_;
@@ -139,11 +142,11 @@ TPSimpleAnalysis::TPSimpleAnalysis(const edm::ParameterSet& iConfig)
   print_(iConfig.getParameter<bool>("Print"))
 {
    // file
-   file_ = new TFile("ECALTPGtree.root","RECREATE");
+   file_ = new TFile(iConfig.getParameter<std::string>("OutputFileName").c_str(),"RECREATE");
    file_->cd() ;
 
    // tree
-   tree_ = new TTree( "EcalTPGAnalysis","EcalTPGAnalysis" );
+   tree_ = new TTree( "tree","EcalTPGAnalysis" );
 
    tree_->Branch("runNb",&treeVariables_.runNb,"runNb/i"); //
    tree_->Branch("evtNb",&treeVariables_.evtNb,"evtNb/i"); //
@@ -152,14 +155,15 @@ TPSimpleAnalysis::TPSimpleAnalysis(const edm::ParameterSet& iConfig)
    // tree_->Branch("nbOfActiveTriggers",&treeVariables_.nbOfActiveTriggers,"nbOfActiveTriggers/i"); //
    // tree_->Branch("activeTriggers",treeVariables_.activeTriggers,"activeTriggers[nbOfActiveTriggers]/I"); //
 
-   tree_->Branch("nbOfTowers",&treeVariables_.nbOfTowers,"nbOfTowers/i"); //
-   tree_->Branch("ieta", treeVariables_.ieta,"ieta[nbOfTowers]/I");//
-   tree_->Branch("iphi", treeVariables_.iphi,"iphi[nbOfTowers]/I");//
-   tree_->Branch("nbOfXtals", treeVariables_.nbOfXtals,"nbOfXtals[nbOfTowers]/I");//
-   tree_->Branch("rawTPData", treeVariables_.rawTPData,"rawTPData[nbOfTowers]/I");//
-   tree_->Branch("compressedTPEt", treeVariables_.compressedTPEt,"compressedTPEt[nbOfTowers]/I");//
-   tree_->Branch("eRec", treeVariables_.eRec,"eRec[nbOfTowers]/F");//
-   tree_->Branch("sFGVB", treeVariables_.sFGVB,"sFGVB[nbOfTowers]/I");//
+   tree_->Branch("nbOfTowers",&treeVariables_.nbOfTowers,"nbOfTowers/I"); //
+   tree_->Branch("ieta", "vector<int>", &treeVariables_.ieta);//
+   tree_->Branch("iphi", "vector<int>", &treeVariables_.iphi);
+   tree_->Branch("nbOfXtals", "vector<int>", &treeVariables_.nbOfXtals);
+   tree_->Branch("rawTPData", "vector<int>", &treeVariables_.rawTPData);
+   tree_->Branch("compressedTPEt", "vector<int>", &treeVariables_.compressedTPEt);
+   tree_->Branch("eRec", "vector<float>",&treeVariables_.eRec);//
+   tree_->Branch("sFGVB", "vector<int>", &treeVariables_.sFGVB);//
+   tree_->Branch("xtalsDigis", "std::vector<std::vector<std::array<int, 10>>>", &treeVariables_.xtalsDigis);
 }
 
 
@@ -216,7 +220,7 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       tE.rawTPData_ = d[0].raw() ;
       tE.compressedEt_ = d.compressedEt();
       // 0.5 GeV precision 
-      tE.eRec_ = d.compressedEt() / 2;
+      tE.eRec_ = d.compressedEt() / 2.;
       tE.sFGVB_ = d.sFGVB();
       mapTower[TPtowid] = tE ;
    }
@@ -236,6 +240,15 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       const EcalTrigTowerDetId towid = id.tower();
       itTT = mapTower.find(towid) ;
       if (itTT != mapTower.end()) (itTT->second).nbXtal_++ ;
+      array<int,10> digis;
+      cout << "Digis ";
+      for (int i= 0; i<10; i++) {
+         digis[i] = df[i] & 0xFFF;
+         cout << digis[i];
+      }
+      cout <<endl;
+      (itTT->second).digis_.push_back(digis);
+
    }
 
   
@@ -265,6 +278,23 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
    treeVariables_.nbOfTowers = mapTower.size() ;
    int towerNb = 0 ;
+   treeVariables_.ieta.clear();
+   treeVariables_.ieta.resize(treeVariables_.nbOfTowers);
+   treeVariables_.iphi.clear();
+   treeVariables_.iphi.resize(treeVariables_.nbOfTowers);
+   treeVariables_.nbOfXtals.clear();
+   treeVariables_.nbOfXtals.resize(treeVariables_.nbOfTowers);
+   treeVariables_.rawTPData.clear();
+   treeVariables_.rawTPData.resize(treeVariables_.nbOfTowers);
+   treeVariables_.compressedTPEt.clear();
+   treeVariables_.compressedTPEt.resize(treeVariables_.nbOfTowers);
+   treeVariables_.eRec.clear();
+   treeVariables_.eRec.resize(treeVariables_.nbOfTowers);
+   treeVariables_.sFGVB.clear();
+   treeVariables_.sFGVB.resize(treeVariables_.nbOfTowers);
+   treeVariables_.xtalsDigis.clear();
+   treeVariables_.xtalsDigis.resize(treeVariables_.nbOfTowers);
+
    for (itTT = mapTower.begin() ; itTT != mapTower.end() ; ++itTT) {
       treeVariables_.ieta[towerNb] = (itTT->second).ieta_ ;
       treeVariables_.iphi[towerNb] = (itTT->second).iphi_ ;
@@ -273,6 +303,7 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       treeVariables_.compressedTPEt[towerNb] = (itTT->second).compressedEt_;
       treeVariables_.eRec[towerNb] = (itTT->second).eRec_ ;
       treeVariables_.sFGVB[towerNb] = (itTT->second).sFGVB_;
+      treeVariables_.xtalsDigis[towerNb] =  (itTT->second).digis_;
       towerNb++ ;
    }
 
@@ -304,6 +335,7 @@ TPSimpleAnalysis::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
   desc.add<edm::InputTag>("TPcollection",edm::InputTag("ecalEBunpacker","EcalTriggerPrimitives"));
   desc.add<edm::InputTag>("DigiCollectionEB",edm::InputTag("ecalEBunpacker","ebDigis"));
   desc.add<edm::InputTag>("DigiCollectionEE",edm::InputTag("ecalEBunpacker","eeDigis"));
+  desc.add<std::string>("OutputFileName", "EcalTPGtree.root");
   desc.add<bool>("Print", false);
   
   descriptions.addDefault(desc);

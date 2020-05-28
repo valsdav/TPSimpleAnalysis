@@ -27,6 +27,7 @@ process.tpAnalyzer = cms.EDAnalyzer("TPSimpleAnalysis",
     TPcollection = cms.InputTag("ecalEBunpacker","EcalTriggerPrimitives"),
     DigiCollectionEB = cms.InputTag("ecalEBunpacker","ebDigis"),
     DigiCollectionEE = cms.InputTag("ecalEBunpacker","eeDigis"),
+    OutputFileName = cms.string("output_tp.root"),
     Print = cms.bool(True),
 
 )
