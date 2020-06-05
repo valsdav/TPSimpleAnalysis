@@ -244,10 +244,10 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       cout << "Digis ";
       for (int i= 0; i<10; i++) {
          digis[i] = df[i] & 0xFFF;
-         cout << digis[i];
+         cout << digis[i]<<" ";
       }
       cout <<endl;
-      (itTT->second).digis_.push_back(digis);
+      itTT->second.digis_.push_back(digis);
 
    }
 

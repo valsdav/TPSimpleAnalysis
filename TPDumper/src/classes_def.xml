@@ -1,3 +1,4 @@
 <lcgdict>
   <class name="std::vector<std::vector<std::array<int,10> > >"/>
+  <class name="Pulse" />
 </lcgdict>
