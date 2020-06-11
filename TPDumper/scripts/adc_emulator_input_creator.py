@@ -15,6 +15,8 @@ args = parser.parse_args()
 import ROOT as R
 R.gSystem.Load("libTPSimpleAnalysisTPDumper.so")
 
+GeVtoADC = 25
+
 pulseFunction = R.Pulse(1.0, args.t0, args.alpha, args.beta )
 
 #pulse = [0.,0.,0.,0.,0.795696,0.999837,0.882055,0.674526,0.477181,0.3214,0.2092877,0.132943]
@@ -26,7 +28,7 @@ pedestals_hex = [hex(p|0x1000)[2:] for p in pedestals]
 
 if args.amplitude !=-1:
     for i in range(10):
-        amplitudes.append(   hex( int(pulse[i]*args.amplitude + pedestals[i]) | 0x1000)[2:] )
+        amplitudes.append(   hex( int(pulse[i]*args.amplitude*GeVtoADC + pedestals[i]) | 0x1000)[2:] )
 elif args.amplitudes_list:
     for a in args.amplitudes_list:
         amplitudes.append( hex(a + pedestals[i] | 0x1000)[2:])

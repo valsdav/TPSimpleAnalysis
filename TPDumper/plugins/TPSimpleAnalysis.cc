@@ -223,6 +223,7 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       tE.eRec_ = d.compressedEt() / 2.;
       tE.sFGVB_ = d.sFGVB();
       mapTower[TPtowid] = tE ;
+      cout << TPtowid << " TP:" <<  tE.compressedEt_  <<  endl;
    }
 
 
@@ -248,7 +249,6 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       }
       cout <<endl;
       itTT->second.digis_.push_back(digis);
-
    }
 
   

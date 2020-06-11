@@ -3,6 +3,14 @@ import FWCore.ParameterSet.Config as cms
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
+
+options.register("analysisOutput",
+                "output_tp.root",
+                VarParsing.multiplicity.singleton, # singleton or list
+                VarParsing.varType.string,          # string, int, or float
+                "Output filename")
+
+
 options.parseArguments()
 
 process = cms.Process("TPAnalysis")
@@ -27,7 +35,7 @@ process.tpAnalyzer = cms.EDAnalyzer("TPSimpleAnalysis",
     TPcollection = cms.InputTag("ecalEBunpacker","EcalTriggerPrimitives"),
     DigiCollectionEB = cms.InputTag("ecalEBunpacker","ebDigis"),
     DigiCollectionEE = cms.InputTag("ecalEBunpacker","eeDigis"),
-    OutputFileName = cms.string("output_tp.root"),
+    OutputFileName = cms.string(options.analysisOutput),
     Print = cms.bool(True),
 
 )

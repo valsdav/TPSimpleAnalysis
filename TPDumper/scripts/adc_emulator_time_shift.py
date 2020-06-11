@@ -28,10 +28,12 @@ amplitudes = []
 pedestals = [args.pedestal]*10
 pedestals_hex = [hex(p|0x1000)[2:] for p in pedestals]
 
+GeVtoADC = 25
 
 if args.amplitude !=-1:
     for pulse in pulses:
-        amplitudes.append(  [ hex( int(pulse[i]*args.amplitude + pedestals[i]) | 0x1000)[2:]  for i in range(10)])
+        amplitudes.append(  [ hex( int( pulse[i]*args.amplitude*GeVtoADC + pedestals[i]) | 0x1000)[2:]  for i in range(10)] )
+
 
 
 print(amplitudes)
@@ -39,6 +41,10 @@ print(amplitudes)
 output = []
 
 for iEv in range(1,24):
+    event = amplitudes[iEv]
+    # Change the first BX to associated the number of the event
+    event[0] = hex( iEv | 0x1000 )[2:]
+
     for iTower in range(1,6):
         for iStrip in range(1,6):
             if args.mask_strips and iStrip in args.mask_strips:
@@ -46,7 +52,7 @@ for iEv in range(1,24):
                     output.append("Event {} Id 1 fed 611 Tower {} strip {} xtal {} {}".format(iEv, iTower,iStrip,iXtal," ".join(pedestals_hex)))
             else:
                 for iXtal in range(1,6):
-                    output.append("Event {} Id 1 fed 611 Tower {} strip {} xtal {} {}".format(iEv, iTower,iStrip,iXtal," ".join(amplitudes[iEv])))
+                    output.append("Event {} Id 1 fed 611 Tower {} strip {} xtal {} {}".format(iEv, iTower,iStrip,iXtal," ".join(event)))
 
 with open(args.output, "w") as of:
     of.write("\n".join(output))
