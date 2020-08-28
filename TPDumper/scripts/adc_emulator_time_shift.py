@@ -6,9 +6,9 @@ parser.add_argument("-o", "--output", type=str, help="Output file")
 parser.add_argument("-p", "--pedestal", type=int, help="Pedestal value", default=200)
 parser.add_argument("-ms", "--mask-strips", type=int, nargs="+", help="Mask strips")
 parser.add_argument("-a", "--amplitude", type=int, help="Single amplitude - standard pulse", required=False, default=-1)
-parser.add_argument("-t0", type=int, help="Peak time", required=False, default=125.)
-parser.add_argument("--alpha", type=int, help="Alpha parameter", required=False, default=1.16037)
-parser.add_argument("--beta",  type=int, help="Beta parameter", required=False, default=41.059)
+parser.add_argument("-t0", type=float, help="Peak time", required=False, default=125.)
+parser.add_argument("--alpha", type=float, help="Alpha parameter", required=False, default=1.16037)
+parser.add_argument("--beta",  type=float, help="Beta parameter", required=False, default=41.059)
 #parser.add_argument("-al", "--amplitudes-list", nargs="+", type=int, help="Amplitudes list", required=False, default=[])
 args = parser.parse_args()
 
@@ -17,8 +17,11 @@ R.gSystem.Load("libTPSimpleAnalysisTPDumper.so")
 
 pulseFunctions = []
 for sign in [+2,-2]:
-    for i in range(1,13):
+    for i in range(0,13):
         pulseFunctions.append(R.Pulse(1.0, args.t0 + sign*i , args.alpha, args.beta ))
+
+# for i in range(0,24):
+#     pulseFunctions.append(R.Pulse(1.0, args.t0 + i , args.alpha, args.beta ))
 
 #pulse = [0.,0.,0.,0.,0.795696,0.999837,0.882055,0.674526,0.477181,0.3214,0.2092877,0.132943]
 pulses = [[pF.sample(i) for i in range(0, 10)] for pF in pulseFunctions]

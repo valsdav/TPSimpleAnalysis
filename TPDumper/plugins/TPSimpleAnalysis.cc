@@ -242,12 +242,12 @@ TPSimpleAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       itTT = mapTower.find(towid) ;
       if (itTT != mapTower.end()) (itTT->second).nbXtal_++ ;
       array<int,10> digis;
-      cout << "Digis ";
+      //cout << "Digis ";
       for (int i= 0; i<10; i++) {
          digis[i] = df[i] & 0xFFF;
-         cout << digis[i]<<" ";
+         //cout << digis[i]<<" ";
       }
-      cout <<endl;
+      //cout <<endl;
       itTT->second.digis_.push_back(digis);
    }
 
