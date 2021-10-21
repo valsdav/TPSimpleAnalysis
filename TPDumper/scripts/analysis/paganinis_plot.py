@@ -17,7 +17,7 @@ mg.Add(g_nom_peak)
 mg.Add(g_nom)
 leg.AddEntry(g_nom,"Nominal weights, no peak finder")
 leg.AddEntry(g_nom_peak, "Nominal weights, peak finder ")
-leg.AddEntry(g_minus, "Weights for -1 BX")
+leg.AddEntry(g_minus, "Weights for -1 BX, no peak finder")
 
 # mg.Add(g_minus_peak)
 mg.Add(g_minus)
